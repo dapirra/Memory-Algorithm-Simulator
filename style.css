@@ -14,3 +14,13 @@ Class: COM 310
 #title {
 	text-align: center;
 }
+
+/*Position the Memory Chart*/
+#container {
+	display: block;
+	width: 50%;
+	margin: auto;
+}
+
+#memoryChart {
+}

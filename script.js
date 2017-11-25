@@ -39,10 +39,55 @@ GUI.compact = function () {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+var chartColors = {
+	red: 'rgb(255, 99, 132)',
+	orange: 'rgb(255, 159, 64)',
+	yellow: 'rgb(255, 205, 86)',
+	green: 'rgb(75, 192, 192)',
+	blue: 'rgb(54, 162, 235)',
+	purple: 'rgb(153, 102, 255)'
+};
+
+var config = {
+	type: 'doughnut',
+	data: {
+		datasets: [{
+			data: [
+				400,
+				GUI.totalMemory - 400
+			],
+			backgroundColor: [
+				chartColors.blue,
+				'#dddddd'
+			],
+			label: 'Dataset 1'
+		}],
+		labels: [
+			'OS',
+			'Free Space'
+		]
+	},
+	options: {
+		responsive: true,
+		legend: {
+			display: false
+		},
+		title: {
+			display: false
+		},
+		animation: {
+			animateScale: true,
+			animateRotate: true
+		}
+	}
+};
+
 // This function will execute once the page is finished loading
 $(function () {
+	var ctx = $('#memoryChart');
+	memoryChart = new Chart(ctx, config);
 });
 
 // Update the user interface when the window is resized
-$(window).resize(function() {
-});
+//$(window).resize(function() {
+//});
