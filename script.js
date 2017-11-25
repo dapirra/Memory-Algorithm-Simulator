@@ -3,7 +3,7 @@
 
 /*
 
-CPU Scheduler Simulator
+Memory Manager Simulator
 
 Name: David Pirraglia
 
