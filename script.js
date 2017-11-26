@@ -37,28 +37,46 @@ var GUI = {
 	usedMemory: 400,
 	usableMemory: 3600,
 	totalMemory: 4000,
-
+	numberOfProcessesCreated: 0,
 	memoryValues: [400, 4000 - 400],
-
 	memoryLabels: ['OS', freeSpaceLabel],
-
 	memoryColors: [chartColors[4], freeMemoryColor],
-
-	memoryArray: [{
-		id: 'OS',
-		address: 0,
-		size: 400
-	}]
 };
 
-GUI.addProcess = function () {
-	this.itemsInMemory++;
+GUI.addProcess = function (pid, processSize, burstTime) {
+	if (this.countHoles() === 0) { // Add process to the end if no holes
+		var oldFreeSpace = this.memoryValues.pop();
+		this.memoryLabels.pop();
+		this.memoryColors.pop();
+
+		this.memoryValues.push(processSize);
+		this.memoryLabels.push(pid);
+		this.memoryColors.push(chartColors[this.itemsInMemory %
+			chartColors.length]);
+
+		this.usedMemory += processSize;
+		this.memoryValues.push(oldFreeSpace - processSize);
+		this.memoryLabels.push(freeSpaceLabel);
+		this.memoryColors.push(freeMemoryColor);
+
+		memoryChart.update();
+		this.itemsInMemory++;
+	} else { // Use memory algorithm to add process to memory
+		//
+	}
+
+	// Automatically remove the process after a certain number of milliseconds
+	if (burstTime) {
+		setTimeout(function() {
+			GUI.removeProcess(pid);
+		}, burstTime);
+	}
 };
 
-GUI.removeProcess = function (id) {
+GUI.removeProcess = function (pid) {
 	var index, len = this.memoryLabels.length;
 	for (index = 0; index < len; index++) {
-		if (id === this.memoryLabels[index]) {
+		if (pid === this.memoryLabels[index]) {
 			this.memoryLabels[index] = freeSpaceLabel;
 			this.memoryColors[index] = freeMemoryColor;
 			this.itemsInMemory--;
@@ -116,7 +134,7 @@ GUI.compact = function () {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-var config = {
+var chartConfig = {
 	type: 'doughnut',
 	data: {
 		datasets: [{
@@ -145,7 +163,7 @@ var config = {
 $(function () {
 	// Create Chart
 	var ctx = $('#memoryChart');
-	memoryChart = new Chart(ctx, config);
+	memoryChart = new Chart(ctx, chartConfig);
 
 	// Create Tabs
 	var tabControls = $('#tabs').tabs();
@@ -204,28 +222,7 @@ $(function () {
 		var processSize = Number($('#processSize').val());
 		var burstTime = Number($('#burstTime').val());
 
-		if (GUI.countHoles() === 0) {
-			var oldFreeSpace = GUI.memoryValues.pop();
-			GUI.memoryLabels.pop();
-			GUI.memoryColors.pop();
-
-			GUI.memoryValues.push(processSize);
-			GUI.memoryLabels.push(pid);
-			GUI.memoryColors.push(chartColors[GUI.itemsInMemory %
-				chartColors.length]);
-
-			GUI.usedMemory += processSize;
-			GUI.memoryValues.push(oldFreeSpace - processSize);
-			GUI.memoryLabels.push(freeSpaceLabel);
-			GUI.memoryColors.push(freeMemoryColor);
-
-			memoryChart.update();
-			GUI.itemsInMemory++;
-		}
-
-		if (burstTime) {
-			setTimeout(function(){ /*Do something*/ }, burstTime);
-		}
+		GUI.addProcess(pid, processSize, burstTime);
 	});
 
 	killProcessButton.click(function (event) {
