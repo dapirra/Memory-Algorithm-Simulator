@@ -103,16 +103,35 @@ $(function () {
 		}
 	});
 
-	$('#applyButton').button();
+	var applyButton = $('#applyButton').button();
 	var createProcessButton = $('#createProcessButton').button();
-	$('#killProcessButton').button();
-	$('#compactButton').button();
-	$('#randomButton').button();
-	$('#killAllButton').button();
+	var killProcessButton = $('#killProcessButton').button();
+	var compactButton = $('#compactButton').button();
+	var randomButton = $('#randomButton').button();
+	var killAllButton = $('#killAllButton').button();
+
+	applyButton.click(function (event) {
+		event.preventDefault();
+	});
 
 	createProcessButton.click(function (event) {
 		event.preventDefault();
-		alert('test');
+	});
+
+	killProcessButton.click(function (event) {
+		event.preventDefault();
+	});
+
+	compactButton.click(function (event) {
+		event.preventDefault();
+	});
+
+	randomButton.click(function (event) {
+		event.preventDefault();
+	});
+
+	killAllButton.click(function (event) {
+		event.preventDefault();
 	});
 
 	// Style all input boxes to look more like jQuery UI elements
