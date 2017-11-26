@@ -50,7 +50,7 @@ GUI.addProcess = function (pid, processSize, burstTime) {
 
 		this.memoryValues.push(processSize);
 		this.memoryLabels.push(pid);
-		this.memoryColors.push(chartColors[this.itemsInMemory %
+		this.memoryColors.push(chartColors[this.memoryValues.length - 1 %
 			chartColors.length]);
 
 		this.usedMemory += processSize;
@@ -61,7 +61,21 @@ GUI.addProcess = function (pid, processSize, burstTime) {
 		memoryChart.update();
 		this.itemsInMemory++;
 	} else { // Use memory algorithm to add process to memory
-		//
+		var index;
+		switch (this.selectedAlgorithm) {
+			case 0: // First Fit
+				index = this.findFirstFit(processSize);
+				if (index) {
+					this.insertProcess(index, pid, processSize);
+				}
+				break;
+			case 1: // Best Fit
+				break;
+			case 2: // Worst Fit
+				break;
+		}
+		this.itemsInMemory++;
+		memoryChart.update();
 	}
 
 	// Automatically remove the process after a certain number of milliseconds
@@ -83,6 +97,40 @@ GUI.removeProcess = function (pid) {
 			memoryChart.update();
 			return true;
 		}
+	}
+};
+
+GUI.findFirstFit = function (processSize) {
+	var index, len = this.memoryLabels.length;
+	for (index = 0; index < len; index++) {
+		if (this.memoryLabels[index] === freeSpaceLabel &&
+			this.memoryValues[index] >= processSize) {
+				return index;
+		}
+	}
+};
+
+GUI.findBestFit = function (processSize) {
+	//
+};
+
+GUI.findWorstFit = function (processSize) {
+	//
+};
+
+// Inserts a process at a specific point in memory
+GUI.insertProcess = function(position, pid, processSize) {
+	arrayInsert(this.memoryValues, position, processSize);
+	arrayInsert(this.memoryLabels, position, pid);
+	arrayInsert(this.memoryColors, position, chartColors[this.memoryValues.length - 1 %
+		chartColors.length]);
+	var freeSpaceIndex = position + 1;
+	if (processSize === this.memoryValues[freeSpaceIndex]) {
+		arrayRemove(this.memoryValues, freeSpaceIndex);
+		arrayRemove(this.memoryLabels, freeSpaceIndex);
+		arrayRemove(this.memoryColors, freeSpaceIndex);
+	} else {
+		this.memoryValues[freeSpaceIndex] -= processSize;
 	}
 };
 
@@ -255,6 +303,11 @@ $(function () {
 		var processSize = Number($('#processSize').val());
 		var burstTime = Number($('#burstTime').val());
 
+		if (processSize > this.totalMemory) { // There's an error
+			alert('Error: process cannot be bigger than the total memory.');
+			return;
+		}
+
 		GUI.addProcess(pid, processSize, burstTime);
 	});
 
@@ -290,8 +343,6 @@ $(function () {
 	var algorithmComboBox = $('#algorithm').selectmenu({
 		change: function (event, data) {
 			GUI.selectedAlgorithm = data.item.index;
-//			GUI.onAlgorithmComboBoxChange();
-//			GUI.updateGUI();
 		}
 	});
 
@@ -309,7 +360,5 @@ $(function () {
 			algorithmComboBox[0].selectedIndex = --GUI.selectedAlgorithm;
 			algorithmComboBox.selectmenu('refresh');
 		}
-//		GUI.onAlgorithmComboBoxChange();
-//		GUI.updateGUI();
 	});
 });
