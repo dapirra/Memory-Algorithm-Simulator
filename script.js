@@ -13,11 +13,36 @@ Class: COM 310
 
 */
 
+// Function used to insert values in an array
+// https://stackoverflow.com/a/7032717
+arrayInsert = function (array, position, value) {
+	array.splice.apply(array, [position, 0].concat([value]));
+};
+
+var chartColors = [
+	'rgb(255, 99, 132)', // red
+	'rgb(255, 159, 64)', // orange
+	'rgb(255, 205, 86)', // yellow
+	'rgb(75, 192, 192)', // green
+	'rgb(54, 162, 235)', // blue
+	'rgb(153, 102, 255)' // purple
+];
+
+var freeMemoryColor = '#dddddd';
+
 // GUI object used for controling the user interface
 var GUI = {
 	itemsInMemory: 1,
 	selectedAlgorithm: 0, // 0 = First Fit, 1 = Best Fit, 2 = Worst Fit
+	usedMemory: 400,
 	totalMemory: 4000,
+	holes: 0,
+
+	memoryValues: [400, 4000 - 400],
+
+	memoryLabels: ['OS', 'Free Space'],
+
+	memoryColors: [chartColors[4], freeMemoryColor],
 
 	memoryArray: [{
 		id: 'OS',
@@ -39,35 +64,15 @@ GUI.compact = function () {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-var chartColors = {
-	red: 'rgb(255, 99, 132)',
-	orange: 'rgb(255, 159, 64)',
-	yellow: 'rgb(255, 205, 86)',
-	green: 'rgb(75, 192, 192)',
-	blue: 'rgb(54, 162, 235)',
-	purple: 'rgb(153, 102, 255)'
-};
-
-var freeMemoryColor = '#dddddd';
-
 var config = {
 	type: 'doughnut',
 	data: {
 		datasets: [{
-			data: [
-				400,
-				GUI.totalMemory - 400
-			],
-			backgroundColor: [
-				chartColors.blue,
-				freeMemoryColor
-			],
-			label: 'Memory Data' // Check if parameter is nessesary
+			data: GUI.memoryValues,
+			backgroundColor: GUI.memoryColors,
+			label: 'Memory Data' // Check if this parameter is nessesary
 		}],
-		labels: [
-			'OS',
-			'Free Space'
-		]
+		labels: GUI.memoryLabels
 	},
 	options: {
 		responsive: true,
@@ -103,19 +108,57 @@ $(function () {
 		}
 	});
 
-	var applyButton = $('#applyButton').button();
+//	var applyButton = $('#applyButton').button();
+	var updateTotalMemButton = $('#updateTotalMem').button();
+	var updateOSMemButton = $('#updateOSMem').button();
 	var createProcessButton = $('#createProcessButton').button();
 	var killProcessButton = $('#killProcessButton').button();
 	var compactButton = $('#compactButton').button();
 	var randomButton = $('#randomButton').button();
 	var killAllButton = $('#killAllButton').button();
 
-	applyButton.click(function (event) {
+	/*applyButton.click(function (event) {
 		event.preventDefault();
+		GUI.totalMemory = $('#totalMem').val().valueOf();
+		GUI.memoryValues.pop();
+		GUI.memoryValues.push(GUI.totalMemory - GUI.usedMemory);
+		memoryChart.update();
+	});*/
+
+	updateTotalMemButton.click(function (event) {
+		event.preventDefault();
+	});
+
+	updateOSMemButton.click(function (event) {
+		event.preventDefault();
+		var newOSMem = Number($('#osMem').val());
+		if (newOSMem > GUI.totalMemory) {
+			alert('Error: OS Memory cannot be greater than total memory.');
+			$('#osMem').val(GUI.memoryValues[0]);
+		} else {
+			var oldOSMem = GUI.memoryValues[0];
+			GUI.memoryValues[0] = newOSMem;
+			GUI.memoryValues.pop();
+			GUI.usedMemory += newOSMem - oldOSMem;
+			GUI.memoryValues.push(GUI.totalMemory - GUI.usedMemory);
+			memoryChart.update();
+		}
 	});
 
 	createProcessButton.click(function (event) {
 		event.preventDefault();
+		var pid = $('#processID').val();
+		var processSize = Number($('#processSize').val());
+		if (GUI.holes === 0) {
+			arrayInsert(GUI.memoryValues, GUI.itemsInMemory, processSize);
+			arrayInsert(GUI.memoryLabels, GUI.itemsInMemory, pid);
+			arrayInsert(GUI.memoryColors, GUI.itemsInMemory, chartColors[GUI.itemsInMemory % chartColors.length]);
+			GUI.memoryValues.pop();
+			GUI.usedMemory += processSize;
+			GUI.memoryValues.push(GUI.totalMemory - GUI.usedMemory);
+			memoryChart.update();
+			GUI.itemsInMemory++;
+		}
 	});
 
 	killProcessButton.click(function (event) {
