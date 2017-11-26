@@ -40,7 +40,8 @@ var GUI = {
 	numberOfProcessesCreated: 0,
 	memoryValues: [400, 4000 - 400],
 	memoryLabels: ['OS', freeSpaceLabel],
-	memoryColors: [chartColors[4], freeMemoryColor],
+	memoryColors: [chartColors[4], freeMemoryColor]
+//	memoryLength: 2
 };
 
 GUI.addProcess = function (pid, processSize, burstTime) {
@@ -113,6 +114,16 @@ GUI.mergeFreeSpaces = function () {
 				arrayRemove(this.memoryColors, index + 1);
 				index--;
 		}
+	}
+};
+
+// Calculate the total amount of used memory, including holes
+GUI.calulateUsedMemory = function () {
+	var lastIndex = this.memoryLabels.length - 1;
+	if (this.memoryLabels[lastIndex] === freeSpaceLabel) {
+		return this.totalMemory - this.memoryValues[lastIndex];
+	} else {
+		return 0;
 	}
 };
 
