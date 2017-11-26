@@ -19,12 +19,12 @@ arrayRemove = function(array, position) {
 };
 
 var chartColors = [
-	'rgb(255, 99, 132)', // red
-	'rgb(255, 159, 64)', // orange
-	'rgb(255, 205, 86)', // yellow
-	'rgb(75, 192, 192)', // green
-	'rgb(54, 162, 235)', // blue
-	'rgb(153, 102, 255)' // purple
+	'rgb(255, 99, 132)', // Red
+	'rgb(255, 159, 64)', // Orange
+	'rgb(255, 205, 86)', // Yellow
+	'rgb(75, 192, 192)', // Green
+	'rgb(54, 162, 235)', // Blue
+	'rgb(153, 102, 255)' // Purple
 ];
 
 var freeMemoryColor = '#dddddd';
@@ -35,8 +35,8 @@ var GUI = {
 	itemsInMemory: 1,
 	selectedAlgorithm: 0, // 0 = First Fit, 1 = Best Fit, 2 = Worst Fit
 	usedMemory: 400,
+	usableMemory: 3600,
 	totalMemory: 4000,
-	holes: 0,
 
 	memoryValues: [400, 4000 - 400],
 
@@ -61,34 +61,57 @@ GUI.removeProcess = function (id) {
 		if (id === this.memoryLabels[index]) {
 			this.memoryLabels[index] = freeSpaceLabel;
 			this.memoryColors[index] = freeMemoryColor;
-			if (this.memoryLabels[index - 1] !== freeSpaceLabel &&
-				this.memoryLabels[index + 1] !== freeSpaceLabel) {
-					this.holes++;
-			}
 			this.itemsInMemory--;
-
-			// Merge any free space items next to each other
-			for (index = 0; index < len; index++) {
-				if (this.memoryLabels[index] === freeSpaceLabel &&
-					this.memoryLabels[index + 1] === freeSpaceLabel) {
-						this.memoryValues[index] += this.memoryValues[index + 1];
-						arrayRemove(this.memoryValues, index + 1);
-						arrayRemove(this.memoryLabels, index + 1);
-						arrayRemove(this.memoryColors, index + 1);
-						index--;
-				}
-			}
-
+			this.mergeFreeSpaces();
 			memoryChart.update();
 			return true;
 		}
 	}
 };
 
+// Counts the total number of holes in memory
 GUI.countHoles = function () {
+	var i, counter = 0, len = this.memoryLabels.length;
+	for (i = 0; i < len; i++) {
+		if (this.memoryLabels[i] === freeSpaceLabel) {
+			counter++;
+		}
+	}
+	if (this.memoryLabels[len - 1] === freeSpaceLabel) {
+		counter--;
+	}
+	return counter;
+};
+
+// Merge any free space items that are next to each other
+GUI.mergeFreeSpaces = function () {
+	var index, len = this.memoryLabels.length;
+	for (index = 0; index < len; index++) {
+		if (this.memoryLabels[index] === freeSpaceLabel &&
+			this.memoryLabels[index + 1] === freeSpaceLabel) {
+				this.memoryValues[index] += this.memoryValues[index + 1];
+				arrayRemove(this.memoryValues, index + 1);
+				arrayRemove(this.memoryLabels, index + 1);
+				arrayRemove(this.memoryColors, index + 1);
+				index--;
+		}
+	}
 };
 
 GUI.compact = function () {
+	var index, len = this.memoryLabels.length, totalFreeSpace = 0;
+	for (index = 0; index < len; index++) {
+		if (this.memoryLabels[index] === freeSpaceLabel) {
+			totalFreeSpace += this.memoryValues[index];
+			arrayRemove(this.memoryValues, index);
+			arrayRemove(this.memoryLabels, index);
+			arrayRemove(this.memoryColors, index);
+		}
+	}
+	this.memoryValues.push(totalFreeSpace);
+	this.memoryLabels.push(freeSpaceLabel);
+	this.memoryColors.push(freeMemoryColor);
+	memoryChart.update();
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -137,7 +160,6 @@ $(function () {
 		}
 	});
 
-//	var applyButton = $('#applyButton').button();
 	var updateTotalMemButton = $('#updateTotalMem').button();
 	var updateOSMemButton = $('#updateOSMem').button();
 	var createProcessButton = $('#createProcessButton').button();
@@ -145,14 +167,6 @@ $(function () {
 	var compactButton = $('#compactButton').button();
 	var randomButton = $('#randomButton').button();
 	var killAllButton = $('#killAllButton').button();
-
-	/*applyButton.click(function (event) {
-		event.preventDefault();
-		GUI.totalMemory = $('#totalMem').val().valueOf();
-		GUI.memoryValues.pop();
-		GUI.memoryValues.push(GUI.totalMemory - GUI.usedMemory);
-		memoryChart.update();
-	});*/
 
 	updateTotalMemButton.click(function (event) {
 		event.preventDefault();
@@ -189,16 +203,26 @@ $(function () {
 		var pid = $('#processID').val();
 		var processSize = Number($('#processSize').val());
 		var burstTime = Number($('#burstTime').val());
-		if (GUI.holes === 0) {
-			arrayInsert(GUI.memoryValues, GUI.itemsInMemory, processSize);
-			arrayInsert(GUI.memoryLabels, GUI.itemsInMemory, pid);
-			arrayInsert(GUI.memoryColors, GUI.itemsInMemory, chartColors[GUI.itemsInMemory % chartColors.length]);
-			GUI.memoryValues.pop();
+
+		if (GUI.countHoles() === 0) {
+			var oldFreeSpace = GUI.memoryValues.pop();
+			GUI.memoryLabels.pop();
+			GUI.memoryColors.pop();
+
+			GUI.memoryValues.push(processSize);
+			GUI.memoryLabels.push(pid);
+			GUI.memoryColors.push(chartColors[GUI.itemsInMemory %
+				chartColors.length]);
+
 			GUI.usedMemory += processSize;
-			GUI.memoryValues.push(GUI.totalMemory - GUI.usedMemory);
+			GUI.memoryValues.push(oldFreeSpace - processSize);
+			GUI.memoryLabels.push(freeSpaceLabel);
+			GUI.memoryColors.push(freeMemoryColor);
+
 			memoryChart.update();
 			GUI.itemsInMemory++;
 		}
+
 		if (burstTime) {
 			setTimeout(function(){ /*Do something*/ }, burstTime);
 		}
@@ -216,6 +240,7 @@ $(function () {
 
 	compactButton.click(function (event) {
 		event.preventDefault();
+		GUI.compact();
 	});
 
 	randomButton.click(function (event) {
