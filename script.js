@@ -9,9 +9,13 @@ Class: COM 310
 */
 
 // Function used to insert values in an array
-// https://stackoverflow.com/a/7032717
 arrayInsert = function (array, position, value) {
-	array.splice.apply(array, [position, 0].concat([value]));
+	array.splice(position, 0, value);
+};
+
+// Function used to remove values from an array
+arrayRemove = function(array, position) {
+	array.splice(position, 1);
 };
 
 var chartColors = [
@@ -24,6 +28,7 @@ var chartColors = [
 ];
 
 var freeMemoryColor = '#dddddd';
+var freeSpaceLabel = 'Free Space';
 
 // GUI object used for controling the user interface
 var GUI = {
@@ -35,7 +40,7 @@ var GUI = {
 
 	memoryValues: [400, 4000 - 400],
 
-	memoryLabels: ['OS', 'Free Space'],
+	memoryLabels: ['OS', freeSpaceLabel],
 
 	memoryColors: [chartColors[4], freeMemoryColor],
 
@@ -51,7 +56,36 @@ GUI.addProcess = function () {
 };
 
 GUI.removeProcess = function (id) {
-	this.itemsInMemory--;
+	var index, len = this.memoryLabels.length;
+	for (index = 0; index < len; index++) {
+		if (id === this.memoryLabels[index]) {
+			this.memoryLabels[index] = freeSpaceLabel;
+			this.memoryColors[index] = freeMemoryColor;
+			if (this.memoryLabels[index - 1] !== freeSpaceLabel &&
+				this.memoryLabels[index + 1] !== freeSpaceLabel) {
+					this.holes++;
+			}
+			this.itemsInMemory--;
+
+			// Merge any free space items next to each other
+			for (index = 0; index < len; index++) {
+				if (this.memoryLabels[index] === freeSpaceLabel &&
+					this.memoryLabels[index + 1] === freeSpaceLabel) {
+						this.memoryValues[index] += this.memoryValues[index + 1];
+						arrayRemove(this.memoryValues, index + 1);
+						arrayRemove(this.memoryLabels, index + 1);
+						arrayRemove(this.memoryColors, index + 1);
+						index--;
+				}
+			}
+
+			memoryChart.update();
+			return true;
+		}
+	}
+};
+
+GUI.countHoles = function () {
 };
 
 GUI.compact = function () {
@@ -172,6 +206,12 @@ $(function () {
 
 	killProcessButton.click(function (event) {
 		event.preventDefault();
+		var killID = $('#killID').val();
+		if (killID === 'OS') {
+			alert('Error: OS cannot be killed');
+		} else if (!GUI.removeProcess(killID)) {
+			alert('Error: Process ID does not exist');
+		}
 	});
 
 	compactButton.click(function (event) {
@@ -219,7 +259,3 @@ $(function () {
 //		GUI.updateGUI();
 	});
 });
-
-// Update the user interface when the window is resized
-//$(window).resize(function() {
-//});
