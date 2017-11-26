@@ -127,13 +127,23 @@ $(function () {
 
 	updateTotalMemButton.click(function (event) {
 		event.preventDefault();
+		var newTotalMem = Number($('#totalMem').val());
+		if (newTotalMem < GUI.usedMemory) {
+			alert('Error: Total memory cannot be less than used memory.');
+			$('#totalMem').val(GUI.totalMemory);
+		} else {
+			GUI.totalMemory = newTotalMem;
+			GUI.memoryValues.pop();
+			GUI.memoryValues.push(GUI.totalMemory - GUI.usedMemory);
+			memoryChart.update();
+		}
 	});
 
 	updateOSMemButton.click(function (event) {
 		event.preventDefault();
 		var newOSMem = Number($('#osMem').val());
 		if (newOSMem > GUI.totalMemory) {
-			alert('Error: OS Memory cannot be greater than total memory.');
+			alert('Error: OS memory cannot be greater than total memory.');
 			$('#osMem').val(GUI.memoryValues[0]);
 		} else {
 			var oldOSMem = GUI.memoryValues[0];
@@ -149,6 +159,7 @@ $(function () {
 		event.preventDefault();
 		var pid = $('#processID').val();
 		var processSize = Number($('#processSize').val());
+		var burstTime = Number($('#burstTime').val());
 		if (GUI.holes === 0) {
 			arrayInsert(GUI.memoryValues, GUI.itemsInMemory, processSize);
 			arrayInsert(GUI.memoryLabels, GUI.itemsInMemory, pid);
@@ -158,6 +169,9 @@ $(function () {
 			GUI.memoryValues.push(GUI.totalMemory - GUI.usedMemory);
 			memoryChart.update();
 			GUI.itemsInMemory++;
+		}
+		if (burstTime) {
+			setTimeout(function(){ /*Do something*/ }, burstTime);
 		}
 	});
 
