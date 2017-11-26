@@ -39,7 +39,16 @@ var GUI = {
 	memoryValues: [400, 4000 - 400],
 	memoryLabels: ['OS', freeSpaceLabel],
 	memoryColors: [chartColors[4], freeMemoryColor]
-//	memoryLength: 2
+};
+
+// Not used
+GUI.randomColor = function () {
+	return chartColors[Math.floor(Math.random() * 6)];
+};
+
+// Uses a basic algorithm to determine which color to use
+GUI.determineColor = function () {
+	return chartColors[(this.memoryValues.length - 1) % chartColors.length];
 };
 
 GUI.addProcess = function (pid, processSize, burstTime) {
@@ -50,8 +59,7 @@ GUI.addProcess = function (pid, processSize, burstTime) {
 
 		this.memoryValues.push(processSize);
 		this.memoryLabels.push(pid);
-		this.memoryColors.push(chartColors[this.memoryValues.length - 1 %
-			chartColors.length]);
+		this.memoryColors.push(this.determineColor());
 
 		this.usedMemory += processSize;
 		this.memoryValues.push(oldFreeSpace - processSize);
@@ -122,8 +130,7 @@ GUI.findWorstFit = function (processSize) {
 GUI.insertProcess = function(position, pid, processSize) {
 	arrayInsert(this.memoryValues, position, processSize);
 	arrayInsert(this.memoryLabels, position, pid);
-	arrayInsert(this.memoryColors, position, chartColors[this.memoryValues.length - 1 %
-		chartColors.length]);
+	arrayInsert(this.memoryColors, position, this.determineColor());
 	var freeSpaceIndex = position + 1;
 	if (processSize === this.memoryValues[freeSpaceIndex]) {
 		arrayRemove(this.memoryValues, freeSpaceIndex);
