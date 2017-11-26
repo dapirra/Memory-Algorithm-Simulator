@@ -34,8 +34,6 @@ var freeSpaceLabel = 'Free Space';
 var GUI = {
 	itemsInMemory: 1,
 	selectedAlgorithm: 0, // 0 = First Fit, 1 = Best Fit, 2 = Worst Fit
-	usedMemory: 400,
-	usableMemory: 3600,
 	totalMemory: 4000,
 	numberOfProcessesCreated: 0,
 	memoryValues: [400, 4000 - 400],
@@ -127,6 +125,27 @@ GUI.calulateUsedMemory = function () {
 	}
 };
 
+// Calculate the amount of useable memory at the end
+GUI.calulateUseableMemory = function () {
+	var lastIndex = this.memoryLabels.length - 1;
+	if (this.memoryLabels[lastIndex] === freeSpaceLabel) {
+		return this.memoryValues[lastIndex];
+	} else {
+		return 0;
+	}
+};
+
+// Calculate the total amount of available memory (All mem in holes)
+GUI.calculateAvailableMemory = function () {
+	var index, len = this.memoryLabels.length, totalAvailableMem = 0;
+	for (index = 0; index < len; index++) {
+		if (this.memoryLabels[index] === freeSpaceLabel) {
+			totalAvailableMem += this.memoryValues[index];
+		}
+	}
+	return totalAvailableMem;
+};
+
 GUI.compact = function () {
 	var index, len = this.memoryLabels.length, totalFreeSpace = 0;
 	for (index = 0; index < len; index++) {
@@ -200,13 +219,14 @@ $(function () {
 	updateTotalMemButton.click(function (event) {
 		event.preventDefault();
 		var newTotalMem = Number($('#totalMem').val());
-		if (newTotalMem < GUI.usedMemory) {
+		var usedMemory = GUI.calulateUsedMemory();
+		if (newTotalMem < usedMemory) {
 			alert('Error: Total memory cannot be less than used memory.');
 			$('#totalMem').val(GUI.totalMemory);
 		} else {
 			GUI.totalMemory = newTotalMem;
 			GUI.memoryValues.pop();
-			GUI.memoryValues.push(GUI.totalMemory - GUI.usedMemory);
+			GUI.memoryValues.push(GUI.totalMemory - usedMemory);
 			memoryChart.update();
 		}
 	});
@@ -217,13 +237,15 @@ $(function () {
 		if (newOSMem > GUI.totalMemory) {
 			alert('Error: OS memory cannot be greater than total memory.');
 			$('#osMem').val(GUI.memoryValues[0]);
-		} else {
+		// This condition may not be needed if I don't have to worry about
+		// the OS changing sizes whlie the program is running
+		} else if (newOSMem <= GUI.calulateUseableMemory()) {
 			var oldOSMem = GUI.memoryValues[0];
 			GUI.memoryValues[0] = newOSMem;
-			GUI.memoryValues.pop();
-			GUI.usedMemory += newOSMem - oldOSMem;
-			GUI.memoryValues.push(GUI.totalMemory - GUI.usedMemory);
+			GUI.memoryValues[GUI.memoryValues.length - 1] += oldOSMem - newOSMem;
 			memoryChart.update();
+		} else {
+			alert('There is not enough room to make the OS memory that size.');
 		}
 	});
 
@@ -262,8 +284,7 @@ $(function () {
 	// Style all input boxes to look more like jQuery UI elements
 	$('input').addClass('ui-widget input ui-widget-content ui-corner-all ui-spinner-input');
 
-	// Prettier Tooltips
-	$(document).tooltip();
+	$(document).tooltip(); // Prettier Tooltips
 
 	// jQuery UI for the algorithm combo box
 	var algorithmComboBox = $('#algorithm').selectmenu({
