@@ -2,15 +2,10 @@
 // JSHint settings on first line (JSHint is used to find errors in JavaScript)
 
 /*
-
 Memory Manager Simulator
-
 Name: David Pirraglia
-
 Professor: Sister Jane Fritz
-
 Class: COM 310
-
 */
 
 // Function used to insert values in an array
