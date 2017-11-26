@@ -17,7 +17,7 @@ Class: COM 310
 var GUI = {
 	itemsInMemory: 1,
 	selectedAlgorithm: 0, // 0 = First Fit, 1 = Best Fit, 2 = Worst Fit
-	totalMemory: 4096,
+	totalMemory: 4000,
 
 	memoryArray: [{
 		id: 'OS',
@@ -48,6 +48,8 @@ var chartColors = {
 	purple: 'rgb(153, 102, 255)'
 };
 
+var freeMemoryColor = '#dddddd';
+
 var config = {
 	type: 'doughnut',
 	data: {
@@ -58,9 +60,9 @@ var config = {
 			],
 			backgroundColor: [
 				chartColors.blue,
-				'#dddddd'
+				freeMemoryColor
 			],
-			label: 'Dataset 1'
+			label: 'Memory Data' // Check if parameter is nessesary
 		}],
 		labels: [
 			'OS',
@@ -84,8 +86,67 @@ var config = {
 
 // This function will execute once the page is finished loading
 $(function () {
+	// Create Chart
 	var ctx = $('#memoryChart');
 	memoryChart = new Chart(ctx, config);
+
+	// Create Tabs
+	var tabControls = $('#tabs').tabs();
+
+	// Allow the tabs to be scrollable
+	$('#tabs').children().first().on('mousewheel', function (event) {
+		var selectedTab = tabControls.tabs('option', 'active');
+		if (event.deltaY < 0 && selectedTab < 3) {
+			tabControls.tabs('option', 'active', ++selectedTab);
+		} else if (event.deltaY > 0 && selectedTab > 0) {
+			tabControls.tabs('option', 'active', --selectedTab);
+		}
+	});
+
+	$('#applyButton').button();
+	var createProcessButton = $('#createProcessButton').button();
+	$('#killProcessButton').button();
+	$('#compactButton').button();
+	$('#randomButton').button();
+	$('#killAllButton').button();
+
+	createProcessButton.click(function (event) {
+		event.preventDefault();
+		alert('test');
+	});
+
+	// Style all input boxes to look more like jQuery UI elements
+	$('input').addClass('ui-widget input ui-widget-content ui-corner-all ui-spinner-input');
+
+	// Prettier Tooltips
+	$(document).tooltip();
+
+	// jQuery UI for the algorithm combo box
+	var algorithmComboBox = $('#algorithm').selectmenu({
+		change: function (event, data) {
+			GUI.selectedAlgorithm = data.item.index;
+//			GUI.onAlgorithmComboBoxChange();
+//			GUI.updateGUI();
+		}
+	});
+
+	// Allow the combo box to be scrollable
+	algorithmComboBox.next().on('mousewheel', function (event) {
+		GUI.selectedAlgorithm = algorithmComboBox[0].selectedIndex;
+
+		// Scroll down
+		if (event.deltaY < 0 && GUI.selectedAlgorithm < 2) {
+			algorithmComboBox[0].selectedIndex = ++GUI.selectedAlgorithm;
+			algorithmComboBox.selectmenu('refresh');
+
+		// Scroll Up
+		} else if (event.deltaY > 0 && GUI.selectedAlgorithm > 0) {
+			algorithmComboBox[0].selectedIndex = --GUI.selectedAlgorithm;
+			algorithmComboBox.selectmenu('refresh');
+		}
+//		GUI.onAlgorithmComboBoxChange();
+//		GUI.updateGUI();
+	});
 });
 
 // Update the user interface when the window is resized

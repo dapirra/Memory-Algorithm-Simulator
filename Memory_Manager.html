@@ -41,5 +41,74 @@ Class: COM 310
 		<div id="container">
 			<canvas id="memoryChart"></canvas>
 		</div>
+		<div id="tabs">
+			<ul>
+				<li><a href="#tabs-1">Settings</a></li>
+				<li><a href="#tabs-2">Create Process</a></li>
+				<li><a href="#tabs-3">Kill Process</a></li>
+				<li><a href="#tabs-4">Utilities</a></li>
+			</ul>
+			<div id="tabs-1">
+				<div>
+					<div>
+						<label for="algorithm">Select a Memory Algorithm:</label>
+						<select id="algorithm" title="No need to hit 'Apply Changes' when changing this.">
+							<option value="1" selected>First Fit</option>
+							<option value="2">Best Fit</option>
+							<option value="3">Worst Fit</option>
+						</select>
+					</div>
+					<p></p>
+					<div>
+						<label for="totalMem">Total Memory:</label>
+						<input id="totalMem" value="4000">
+					</div>
+					<p></p>
+					<div>
+						<label for="osMem">OS Memory:</label>
+						<input id="osMem" value="400">
+					</div>
+					<p></p>
+					<div>
+						<button id="applyButton">Apply Changes</button>
+					</div>
+				</div>
+			</div>
+			<div id="tabs-2">
+				<div>
+					<div>
+						<label for="processID">Process ID:</label>
+						<input id="processID">
+					</div>
+					<p></p>
+					<div>
+						<label for="processSize">Process Size:</label>
+						<input id="processSize">
+					</div>
+					<p></p>
+					<div>
+						<label for="burstTime">Burst Time (ms):</label>
+						<input id="burstTime" title="Optional. Leave blank for process to last indefinetly.">
+					</div>
+					<p></p>
+					<button id="createProcessButton">Create Process</button>
+				</div>
+			</div>
+			<div id="tabs-3">
+				<div>
+					<label for="killID">Process ID:</label>
+					<input id="killID">
+				</div>
+				<p></p>
+				<button id="killProcessButton">Kill Process</button>
+			</div>
+			<div id="tabs-4">
+				<div>
+					<button id="compactButton">Compact Memory</button>
+					<button id="randomButton">Create Random Process</button>
+					<button id="killAllButton">Kill All Processes</button>
+				</div>
+			</div>
+		</div>
 	</body>
 </html>
