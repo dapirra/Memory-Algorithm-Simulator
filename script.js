@@ -356,8 +356,11 @@ $(function () {
 		GUI.compact();
 	});
 
+	var randomCounter = 1;
 	randomButton.click(function (event) {
 		event.preventDefault();
+		GUI.addProcess('Random ' + randomCounter++,
+			Math.floor(Math.random() * GUI.totalMemory * 0.15 + GUI.totalMemory * 0.05));
 	});
 
 	killAllButton.click(function (event) {
