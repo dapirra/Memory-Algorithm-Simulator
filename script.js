@@ -370,8 +370,20 @@ $(function () {
 		event.preventDefault();
 	});
 
+	var processDialog = $('#processListDialog').dialog();
+	$('#processListDialog').dialog('instance').close();
 	processListButton.click(function (event) {
 		event.preventDefault();
+		$('#processListDialog').empty();
+		var index, len = GUI.memoryLabels.length,
+			html = '<ul style="list-style-type: none;">';
+		for (index = 0; index < len; index++) {
+			html += '<li class="ui-state-default" style="padding: 0.4em; padding-left: 1.5em;background: '
+				+ GUI.memoryColors[index] + '">' + GUI.memoryLabels[index]
+				+ ': ' + GUI.memoryValues[index] + '</li>'
+		}
+		$('#processListDialog').append(html + '</ul>')
+		$('#processListDialog').dialog('instance').open();
 	});
 
 	waitingButton.click(function (event) {
