@@ -279,7 +279,7 @@ $(function () {
 	// Allow the tabs to be scrollable
 	$('#tabs').children().first().on('mousewheel', function (event) {
 		var selectedTab = tabControls.tabs('option', 'active');
-		if (event.deltaY < 0 && selectedTab < 3) {
+		if (event.deltaY < 0 && selectedTab < 4) {
 			tabControls.tabs('option', 'active', ++selectedTab);
 		} else if (event.deltaY > 0 && selectedTab > 0) {
 			tabControls.tabs('option', 'active', --selectedTab);
@@ -293,6 +293,9 @@ $(function () {
 	var compactButton = $('#compactButton').button();
 	var randomButton = $('#randomButton').button();
 	var killAllButton = $('#killAllButton').button();
+	var processListButton = $('#processListButton').button();
+	var waitingButton = $('#waitingButton').button();
+	var recolorButton = $('#recolorButton').button();
 
 	updateTotalMemButton.click(function (event) {
 		event.preventDefault();
@@ -364,6 +367,18 @@ $(function () {
 	});
 
 	killAllButton.click(function (event) {
+		event.preventDefault();
+	});
+
+	processListButton.click(function (event) {
+		event.preventDefault();
+	});
+
+	waitingButton.click(function (event) {
+		event.preventDefault();
+	});
+
+	recolorButton.click(function (event) {
 		event.preventDefault();
 	});
 
