@@ -41,11 +41,6 @@ var GUI = {
 	memoryColors: [chartColors[4], freeMemoryColor]
 };
 
-// Not used
-GUI.randomColor = function () {
-	return chartColors[Math.floor(Math.random() * 6)];
-};
-
 // Uses a basic algorithm to determine which color to use
 GUI.determineColor = function () {
 	return chartColors[(this.memoryValues.length - 1) % chartColors.length];
@@ -78,8 +73,16 @@ GUI.addProcess = function (pid, processSize, burstTime) {
 				}
 				break;
 			case 1: // Best Fit
+				index = this.findBestFit(processSize);
+				if (index) {
+					this.insertProcess(index, pid, processSize);
+				}
 				break;
 			case 2: // Worst Fit
+				index = this.findWorstFit(processSize);
+				if (index) {
+					this.insertProcess(index, pid, processSize);
+				}
 				break;
 		}
 		this.itemsInMemory++;
@@ -119,11 +122,31 @@ GUI.findFirstFit = function (processSize) {
 };
 
 GUI.findBestFit = function (processSize) {
-	//
+	var index, len = this.memoryLabels.length,
+		bestIndex, bestSize = this.totalMemory;
+	for (index = 0; index < len; index++) {
+		if (this.memoryLabels[index] === freeSpaceLabel &&
+			this.memoryValues[index] >= processSize &&
+			this.memoryValues[index] < bestSize) {
+				bestSize = this.memoryValues[index];
+				bestIndex = index;
+		}
+	}
+	return bestIndex;
 };
 
 GUI.findWorstFit = function (processSize) {
-	//
+	var index, len = this.memoryLabels.length,
+		worstIndex, worstSize = 0;
+	for (index = 0; index < len; index++) {
+		if (this.memoryLabels[index] === freeSpaceLabel &&
+			this.memoryValues[index] >= processSize &&
+			this.memoryValues[index] > worstSize) {
+				worstSize = this.memoryValues[index];
+				worstIndex = index;
+		}
+	}
+	return worstIndex;
 };
 
 // Inserts a process at a specific point in memory
