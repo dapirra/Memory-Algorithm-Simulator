@@ -33,6 +33,7 @@ var freeSpaceLabel = 'Free Space';
 // GUI object used for controling the user interface
 var GUI = {
 	itemsInMemory: 1,
+	randomProcessCounter: 0,
 	selectedAlgorithm: 0, // 0 = First Fit, 1 = Best Fit, 2 = Worst Fit
 	totalMemory: 4000,
 	numberOfProcessesCreated: 0,
@@ -338,11 +339,20 @@ $(function () {
 		var burstTime = Number($('#burstTime').val());
 
 		if (processSize > this.totalMemory) { // There's an error
-			alert('Error: process cannot be bigger than the total memory.');
-			return;
+			alert('Error: Process cannot be bigger than the total memory.');
+		} else if (pid === '') {
+			alert('Error: Process ID cannot be left blank');
+		} else if (processSize <= 0) {
+			alert('Error: Invalid Process Size');
+		} else {
+			GUI.addProcess(pid, processSize, burstTime);
 		}
+	});
 
-		GUI.addProcess(pid, processSize, burstTime);
+	randomButton.click(function (event) {
+		event.preventDefault();
+		GUI.addProcess('Random ' + (++GUI.randomProcessCounter),
+			Math.floor(Math.random() * GUI.totalMemory * 0.15 + GUI.totalMemory * 0.05));
 	});
 
 	killProcessButton.click(function (event) {
@@ -350,21 +360,18 @@ $(function () {
 		var killID = $('#killID').val();
 		if (killID === 'OS') {
 			alert('Error: OS cannot be killed');
+		} else if (killID === '') {
+			alert('Error: No Process ID specified');
 		} else if (!GUI.removeProcess(killID)) {
 			alert('Error: Process ID does not exist');
 		}
 	});
 
-	compactButton.click(function (event) {
+	killRandomButton.click(function (event) {
 		event.preventDefault();
-		GUI.compact();
-	});
-
-	var randomCounter = 1;
-	randomButton.click(function (event) {
-		event.preventDefault();
-		GUI.addProcess('Random ' + randomCounter++,
-			Math.floor(Math.random() * GUI.totalMemory * 0.15 + GUI.totalMemory * 0.05));
+		if (GUI.memoryLabels.length == 2) {
+			alert('Error: There are no processes that can be killed');
+		}
 	});
 
 	killAllButton.click(function (event) {
@@ -377,6 +384,12 @@ $(function () {
 		}
 		GUI.numberOfProcessesCreated = 0;
 		GUI.itemsInMemory = 0;
+		GUI.randomProcessCounter = 0;
+	});
+
+	compactButton.click(function (event) {
+		event.preventDefault();
+		GUI.compact();
 	});
 
 	var processDialog = $('#processListDialog').dialog();
@@ -387,11 +400,11 @@ $(function () {
 		var index, len = GUI.memoryLabels.length,
 			html = '<ul style="list-style-type: none;">';
 		for (index = 0; index < len; index++) {
-			html += '<li class="ui-state-default" style="padding: 0.4em; padding-left: 1.5em;background: '
-				+ GUI.memoryColors[index] + '">' + GUI.memoryLabels[index]
-				+ ': ' + GUI.memoryValues[index] + '</li>'
+			html += '<li class="ui-state-default" style="padding: 0.4em; padding-left: 1.5em;background: ' +
+				GUI.memoryColors[index] + '">' + GUI.memoryLabels[index] +
+				': ' + GUI.memoryValues[index] + '</li>';
 		}
-		$('#processListDialog').append(html + '</ul>')
+		$('#processListDialog').append(html + '</ul>');
 		$('#processListDialog').dialog('instance').open();
 	});
 
