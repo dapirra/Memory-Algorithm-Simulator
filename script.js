@@ -369,6 +369,14 @@ $(function () {
 
 	killAllButton.click(function (event) {
 		event.preventDefault();
+		var i, len = GUI.memoryLabels.length;
+		for (i = len; i > 0; i--) {
+			if (GUI.memoryLabels[i] !== freeSpaceLabel) {
+				GUI.removeProcess(GUI.memoryLabels[i]);
+			}
+		}
+		GUI.numberOfProcessesCreated = 0;
+		GUI.itemsInMemory = 0;
 	});
 
 	var processDialog = $('#processListDialog').dialog();
