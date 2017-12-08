@@ -44,7 +44,6 @@ Class: COM 310
 				<li><a href="#tabs-2">Create Process</a></li>
 				<li><a href="#tabs-3">Kill Process</a></li>
 				<li><a href="#tabs-4">Tools</a></li>
-				<li><a href="#tabs-5">View</a></li>
 			</ul>
 			<div id="tabs-1">
 				<div>
@@ -68,10 +67,6 @@ Class: COM 310
 						<input id="osMem" value="400">
 						<button id="updateOSMem">Update OS Memory</button>
 					</div>
-					<!--<p></p>
-					<div>
-						<button id="applyButton">Apply Changes</button>
-					</div>-->
 				</div>
 			</div>
 			<div id="tabs-2">
@@ -91,7 +86,8 @@ Class: COM 310
 						<input id="burstTime" title="Optional. Leave blank for process to last indefinetly.">
 					</div>
 					<p></p>
-					<button id="createProcessButton">Create Process</button>
+					<button id="createProcessButton" title="Creates a process from the fields above.">Create Process</button>
+					<button id="randomButton" title="Creates a process with a minimum size of 5% and a maximum size of 20% of the total memory.">Create Random Process</button>
 				</div>
 			</div>
 			<div id="tabs-3">
@@ -100,17 +96,13 @@ Class: COM 310
 					<input id="killID">
 				</div>
 				<p></p>
-				<button id="killProcessButton">Kill Process</button>
+				<button id="killProcessButton" title="Kills a process matching the ID specified above.">Kill Process</button>
+				<button id="killRandomButton">Kill Random Process</button>
+				<button id="killAllButton">Kill all Processes</button>
 			</div>
 			<div id="tabs-4">
 				<div>
 					<button id="compactButton">Compact Memory</button>
-					<button id="randomButton" title="Adds a process with a minimum size of 5% and a maximum size of 20% of the total memory.">Create Random Process</button>
-					<button id="killAllButton">Kill all Processes</button>
-				</div>
-			</div>
-			<div id="tabs-5">
-				<div>
 					<button id="processListButton">View Process List</button>
 					<button id="waitingButton">View Waiting Queue</button>
 					<button id="recolorButton">Recolor all Processes</button>

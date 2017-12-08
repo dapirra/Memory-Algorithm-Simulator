@@ -14,12 +14,12 @@ Class: COM 310
 #container {
 	display: block;
 	width: 50%;
+	max-width: 600px;
+	min-width: 300px;
 	margin: auto;
 }
 
-#memoryChart {
-}
-
+/*Add space in between the Chart and the Settings*/
 #tabs {
 	margin-top: 25px;
 }

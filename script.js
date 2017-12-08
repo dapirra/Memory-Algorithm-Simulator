@@ -292,6 +292,7 @@ $(function () {
 	var killProcessButton = $('#killProcessButton').button();
 	var compactButton = $('#compactButton').button();
 	var randomButton = $('#randomButton').button();
+	var killRandomButton = $('#killRandomButton').button();
 	var killAllButton = $('#killAllButton').button();
 	var processListButton = $('#processListButton').button();
 	var waitingButton = $('#waitingButton').button();
