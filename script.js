@@ -28,7 +28,7 @@ createHTMLDialog = function (title, html) {
 	var defaultDialog = $('#dialog').dialog({
 		modal: true,
 		buttons: {
-			Ok: function() {
+			'Ok': function() {
 				$(this).dialog('close');
 			}
 		}
@@ -216,7 +216,7 @@ GUI.mergeFreeSpaces = function () {
 	}
 };
 
-// Calculate the total amount of used memory, including holes
+// Calculate the total amount of used memory, counting holes as used memory
 GUI.calulateUsedMemory = function () {
 	var lastIndex = this.memoryLabels.length - 1;
 	if (this.memoryLabels[lastIndex] === freeSpaceLabel) {
@@ -323,6 +323,7 @@ $(function () {
 		}
 	});
 
+	// Initialize all buttons
 	var updateTotalMemButton = $('#updateTotalMem').button();
 	var updateOSMemButton = $('#updateOSMem').button();
 	var createProcessButton = $('#createProcessButton').button();
@@ -334,6 +335,8 @@ $(function () {
 	var processListButton = $('#processListButton').button();
 	var waitingButton = $('#waitingButton').button();
 	var recolorButton = $('#recolorButton').button();
+
+	// Events for all buttons
 
 	updateTotalMemButton.click(function (event) {
 		event.preventDefault();
@@ -462,14 +465,31 @@ $(function () {
 
 	recolorButton.click(function (event) {
 		event.preventDefault();
+		var i, len = GUI.memoryLabels.length, colorCounter = 0;
+//		var lastColor = chartColors[4], newColor;
+		for (i = 1; i < len; i++) {
+			if (GUI.memoryLabels[i] !== freeSpaceLabel) {
+
+				// Rainbow colors
+				GUI.memoryColors[i] = chartColors[colorCounter++ % chartColors.length];
+
+				// Random colors
+//				do {
+//					newColor = chartColors[Math.floor(Math.random() * chartColors.length)];
+//				} while (newColor === lastColor);
+//				lastColor = newColor;
+//				GUI.memoryColors[i] = newColor;
+			}
+		}
+		memoryChart.update();
 	});
 
-	// Style all input boxes to look more like jQuery UI elements
+	// Style all input boxes to look more like jQueryUI elements
 	$('input').addClass('ui-widget input ui-widget-content ui-corner-all ui-spinner-input');
 
 	$(document).tooltip(); // Prettier Tooltips
 
-	// jQuery UI for the algorithm combo box
+	// jQueryUI for the algorithm combo box
 	var algorithmComboBox = $('#algorithm').selectmenu({
 		change: function (event, data) {
 			GUI.selectedAlgorithm = data.item.index;
