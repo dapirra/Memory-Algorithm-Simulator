@@ -14,8 +14,30 @@ arrayInsert = function (array, position, value) {
 };
 
 // Function used to remove values from an array
-arrayRemove = function(array, position) {
+arrayRemove = function (array, position) {
 	array.splice(position, 1);
+};
+
+// This function creates a jQueryUI Dialog
+createHTMLDialog = function (title, html) {
+	$('#dialog').remove(); // Remove old dialog if exists
+	$(document.body).append('<div id="dialog" title="' +
+		title + '">' + html + '</div>'); // Append new dialog code
+
+	// Settings for the dialog
+	var defaultDialog = $('#dialog').dialog({
+		modal: true,
+		buttons: {
+			Ok: function() {
+				$(this).dialog('close');
+			}
+		}
+	});
+
+	// When the background is clicked, the dialog is closed
+	$('body > div.ui-widget-overlay.ui-front').click(function (event) {
+		defaultDialog.dialog('close');
+	});
 };
 
 var chartColors = [
@@ -27,7 +49,7 @@ var chartColors = [
 	'rgb(153, 102, 255)' // Purple
 ];
 
-var freeMemoryColor = '#dddddd';
+var freeMemoryColor = '#ddd';
 var freeSpaceLabel = 'Free Space';
 
 // GUI object used for controling the user interface
@@ -99,11 +121,11 @@ GUI.addProcess = function (pid, processSize, burstTime) {
 };
 
 GUI.removeProcess = function (pid) {
-	var index, len = this.memoryLabels.length;
-	for (index = 0; index < len; index++) {
-		if (pid === this.memoryLabels[index]) {
-			this.memoryLabels[index] = freeSpaceLabel;
-			this.memoryColors[index] = freeMemoryColor;
+	var i, len = this.memoryLabels.length;
+	for (i = 0; i < len; i++) {
+		if (pid === this.memoryLabels[i]) {
+			this.memoryLabels[i] = freeSpaceLabel;
+			this.memoryColors[i] = freeMemoryColor;
 			this.itemsInMemory--;
 			this.mergeFreeSpaces();
 			memoryChart.update();
@@ -304,7 +326,7 @@ $(function () {
 		var newTotalMem = Number($('#totalMem').val());
 		var usedMemory = GUI.calulateUsedMemory();
 		if (newTotalMem < usedMemory) {
-			alert('Error: Total memory cannot be less than used memory.');
+			createHTMLDialog('Error', 'Total memory cannot be less than used memory.');
 			$('#totalMem').val(GUI.totalMemory);
 		} else {
 			GUI.totalMemory = newTotalMem;
@@ -318,7 +340,7 @@ $(function () {
 		event.preventDefault();
 		var newOSMem = Number($('#osMem').val());
 		if (newOSMem > GUI.totalMemory) {
-			alert('Error: OS memory cannot be greater than total memory.');
+			createHTMLDialog('Error', 'OS memory cannot be greater than total memory.');
 			$('#osMem').val(GUI.memoryValues[0]);
 		// This condition may not be needed if I don't have to worry about
 		// the OS changing sizes whlie the program is running
@@ -328,7 +350,7 @@ $(function () {
 			GUI.memoryValues[GUI.memoryValues.length - 1] += oldOSMem - newOSMem;
 			memoryChart.update();
 		} else {
-			alert('There is not enough room to make the OS memory that size.');
+			createHTMLDialog('Error', 'There is not enough room to make the OS memory that size.');
 		}
 	});
 
@@ -339,11 +361,11 @@ $(function () {
 		var burstTime = Number($('#burstTime').val());
 
 		if (processSize > this.totalMemory) { // There's an error
-			alert('Error: Process cannot be bigger than the total memory.');
+			createHTMLDialog('Error', 'Process cannot be bigger than the total memory.');
 		} else if (pid === '') {
-			alert('Error: Process ID cannot be left blank');
+			createHTMLDialog('Error', 'Process ID cannot be left blank.');
 		} else if (processSize <= 0) {
-			alert('Error: Invalid Process Size');
+			createHTMLDialog('Error', 'Invalid Process Size.');
 		} else {
 			GUI.addProcess(pid, processSize, burstTime);
 		}
@@ -359,18 +381,18 @@ $(function () {
 		event.preventDefault();
 		var killID = $('#killID').val();
 		if (killID === 'OS') {
-			alert('Error: OS cannot be killed');
+			createHTMLDialog('Error', 'OS cannot be killed.');
 		} else if (killID === '') {
-			alert('Error: No Process ID specified');
+			createHTMLDialog('Error', 'No Process ID specified.');
 		} else if (!GUI.removeProcess(killID)) {
-			alert('Error: Process ID does not exist');
+			createHTMLDialog('Error', 'Process ID does not exist.');
 		}
 	});
 
 	killRandomButton.click(function (event) {
 		event.preventDefault();
 		if (GUI.memoryLabels.length == 2) {
-			alert('Error: There are no processes that can be killed');
+			createHTMLDialog('Error', 'There are no processes that can be killed.');
 		}
 	});
 
@@ -392,20 +414,19 @@ $(function () {
 		GUI.compact();
 	});
 
-	var processDialog = $('#processListDialog').dialog();
-	$('#processListDialog').dialog('instance').close();
 	processListButton.click(function (event) {
 		event.preventDefault();
-		$('#processListDialog').empty();
-		var index, len = GUI.memoryLabels.length,
+
+		var i, len = GUI.memoryLabels.length,
 			html = '<ul style="list-style-type: none;">';
-		for (index = 0; index < len; index++) {
+		for (i = 0; i < len; i++) {
 			html += '<li class="ui-state-default" style="padding: 0.4em; padding-left: 1.5em;background: ' +
-				GUI.memoryColors[index] + '">' + GUI.memoryLabels[index] +
-				': ' + GUI.memoryValues[index] + '</li>';
+				GUI.memoryColors[i] + '">' + GUI.memoryLabels[i] +
+				': ' + GUI.memoryValues[i] + '</li>';
 		}
-		$('#processListDialog').append(html + '</ul>');
-		$('#processListDialog').dialog('instance').open();
+		html += '</ul>';
+
+		createHTMLDialog('Process List', html);
 	});
 
 	waitingButton.click(function (event) {
