@@ -309,6 +309,20 @@ $(function () {
 		}
 	});
 
+	// When typing a process to kill, allow for autocompletion/suggestions
+	$('#killID').autocomplete({
+		source: GUI.memoryLabels,
+		response: function (event, ui) {
+			// Filter Free Space and OS from suggestions
+			for (var i = ui.content.length - 1; i >= 0; i--) {
+				if (ui.content[i].label === freeSpaceLabel ||
+					ui.content[i].label === 'OS') {
+					arrayRemove(ui.content, i);
+				}
+			}
+		}
+	});
+
 	var updateTotalMemButton = $('#updateTotalMem').button();
 	var updateOSMemButton = $('#updateOSMem').button();
 	var createProcessButton = $('#createProcessButton').button();
@@ -360,10 +374,15 @@ $(function () {
 		var processSize = Number($('#processSize').val());
 		var burstTime = Number($('#burstTime').val());
 
-		if (processSize > this.totalMemory) { // There's an error
+		// Error Checking
+		if (isNaN(processSize)) {
+			createHTMLDialog('Error', 'Process is not a number.');
+		} else if (processSize > this.totalMemory) {
 			createHTMLDialog('Error', 'Process cannot be bigger than the total memory.');
 		} else if (pid === '') {
 			createHTMLDialog('Error', 'Process ID cannot be left blank.');
+		} else if (pid === 'OS' || pid === freeSpaceLabel) {
+			createHTMLDialog('Error', 'Invalid Process ID.');
 		} else if (processSize <= 0) {
 			createHTMLDialog('Error', 'Invalid Process Size.');
 		} else {
@@ -382,6 +401,8 @@ $(function () {
 		var killID = $('#killID').val();
 		if (killID === 'OS') {
 			createHTMLDialog('Error', 'OS cannot be killed.');
+		} else if (killID === freeSpaceLabel) {
+			createHTMLDialog('Error', 'This is not a process.');
 		} else if (killID === '') {
 			createHTMLDialog('Error', 'No Process ID specified.');
 		} else if (!GUI.removeProcess(killID)) {
@@ -393,7 +414,13 @@ $(function () {
 		event.preventDefault();
 		if (GUI.memoryLabels.length == 2) {
 			createHTMLDialog('Error', 'There are no processes that can be killed.');
+			return;
 		}
+
+		var labels = GUI.memoryLabels.filter(function (label) {
+			return label !== freeSpaceLabel && label !== 'OS';
+		});
+		GUI.removeProcess(labels[Math.floor(Math.random() * labels.length)]);
 	});
 
 	killAllButton.click(function (event) {
