@@ -121,8 +121,7 @@ GUI.addProcess = function (pid, processSize, burstTime) {
 };
 
 GUI.removeProcess = function (pid) {
-	var i, len = this.memoryLabels.length;
-	for (i = 0; i < len; i++) {
+	for (var i = this.memoryLabels.length - 1; i > 0; i--) {
 		if (pid === this.memoryLabels[i]) {
 			this.memoryLabels[i] = freeSpaceLabel;
 			this.memoryColors[i] = freeMemoryColor;
@@ -327,11 +326,11 @@ $(function () {
 	var updateTotalMemButton = $('#updateTotalMem').button();
 	var updateOSMemButton = $('#updateOSMem').button();
 	var createProcessButton = $('#createProcessButton').button();
+	var createRandomButton = $('#randomButton').button();
 	var killProcessButton = $('#killProcessButton').button();
-	var compactButton = $('#compactButton').button();
-	var randomButton = $('#randomButton').button();
 	var killRandomButton = $('#killRandomButton').button();
 	var killAllButton = $('#killAllButton').button();
+	var compactButton = $('#compactButton').button();
 	var processListButton = $('#processListButton').button();
 	var waitingButton = $('#waitingButton').button();
 	var recolorButton = $('#recolorButton').button();
@@ -396,7 +395,7 @@ $(function () {
 		}
 	});
 
-	randomButton.click(function (event) {
+	createRandomButton.click(function (event) {
 		event.preventDefault();
 		GUI.addProcess('Random ' + (++GUI.randomProcessCounter),
 			Math.floor(Math.random() * GUI.totalMemory * 0.15 + GUI.totalMemory * 0.05));
@@ -431,8 +430,12 @@ $(function () {
 
 	killAllButton.click(function (event) {
 		event.preventDefault();
-		var i, len = GUI.memoryLabels.length;
-		for (i = len; i > 0; i--) {
+		if (GUI.memoryLabels.length == 2) {
+			createHTMLDialog('Error', 'There are no processes that can be killed.');
+			return;
+		}
+
+		for (var i = GUI.memoryLabels.length - 1; i > 0; i--) {
 			if (GUI.memoryLabels[i] !== freeSpaceLabel) {
 				GUI.removeProcess(GUI.memoryLabels[i]);
 			}
