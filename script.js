@@ -345,12 +345,14 @@ $(function () {
 		if (newTotalMem < usedMemory) {
 			createHTMLDialog('Error', 'Total memory cannot be less than used memory.');
 			$('#totalMem').val(GUI.totalMemory);
-		} else {
-			GUI.totalMemory = newTotalMem;
-			GUI.memoryValues.pop();
-			GUI.memoryValues.push(GUI.totalMemory - usedMemory);
-			memoryChart.update();
+		} else if (newTotalMem === GUI.totalMemory) { // Check if the value changed
+			return;
 		}
+
+		GUI.totalMemory = newTotalMem;
+		GUI.memoryValues.pop();
+		GUI.memoryValues.push(GUI.totalMemory - usedMemory);
+		memoryChart.update();
 	});
 
 	updateOSMemButton.click(function (event) {
@@ -358,17 +360,18 @@ $(function () {
 		var newOSMem = Number($('#osMem').val());
 		if (newOSMem > GUI.totalMemory) {
 			createHTMLDialog('Error', 'OS memory cannot be greater than total memory.');
-			$('#osMem').val(GUI.memoryValues[0]);
-		// This condition may not be needed if I don't have to worry about
-		// the OS changing sizes whlie the program is running
-		} else if (newOSMem <= GUI.calulateUseableMemory()) {
-			var oldOSMem = GUI.memoryValues[0];
-			GUI.memoryValues[0] = newOSMem;
-			GUI.memoryValues[GUI.memoryValues.length - 1] += oldOSMem - newOSMem;
-			memoryChart.update();
-		} else {
-			createHTMLDialog('Error', 'There is not enough room to make the OS memory that size.');
+			$('#osMem').val(GUI.memoryValues[0]); // Restore initial value
+			return;
+		} else if (newOSMem === GUI.memoryValues[0]) { // Check if the value changed
+			return;
+		} else if (GUI.memoryLabels.length !== 2) {
+			createHTMLDialog('Error', 'OS size cannot be changed while there are processes in memory.');
+			return;
 		}
+
+		GUI.memoryValues[0] = newOSMem;
+		GUI.memoryValues[1] = GUI.totalMemory - newOSMem;
+		memoryChart.update();
 	});
 
 	createProcessButton.click(function (event) {
