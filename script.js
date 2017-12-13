@@ -115,9 +115,10 @@ var GUI = {
 	itemsInMemory: 1,
 	randomProcessCounter: 0,
 	selectedAlgorithm: 0, // 0 = First Fit, 1 = Best Fit, 2 = Worst Fit
-	totalMemory: 4000,
+	totalMemory: 4096,
+	osMemory: 400,
 	numberOfProcessesCreated: 0,
-	memoryValues: [400, 4000 - 400],
+	memoryValues: [400, 4096 - 400],
 	memoryLabels: ['OS', freeSpaceLabel],
 	memoryColors: [chartColors[4], freeMemoryColor],
 	waitingQueue: []
@@ -128,7 +129,7 @@ GUI.determineColor = function () {
 	return chartColors[(this.memoryValues.length - 1) % chartColors.length];
 };
 
-GUI.addProcess = function (pid, processSize, burstTime) {
+GUI.addProcess = function (pid, processSize, burstTime, addingFromQueue) {
 	var index;
 	switch (this.selectedAlgorithm) {
 		case 0: // First Fit
@@ -144,13 +145,15 @@ GUI.addProcess = function (pid, processSize, burstTime) {
 
 	if (index) {
 		this.insertProcess(index, pid, processSize);
+	} else if (addingFromQueue) {
+		return false;
 	} else {
 		createHTMLConfirmDialog('Error: No room left in memory',
 			'Would you like to add the process to the waiting queue?',
 			function () {
 				GUI.waitingQueue.push([pid, processSize, burstTime]);
 			});
-		return;
+		return false;
 	}
 
 	this.itemsInMemory++;
@@ -162,15 +165,30 @@ GUI.addProcess = function (pid, processSize, burstTime) {
 			GUI.removeProcess(pid);
 		}, burstTime);
 	}
+
+	return true;
 };
 
-GUI.removeProcess = function (pid) {
+GUI.removeProcess = function (pid, addFromWaitingQueue) {
+	if (addFromWaitingQueue === undefined) addFromWaitingQueue = true;
+
 	for (var i = this.memoryLabels.length - 1; i > 0; i--) {
 		if (pid === this.memoryLabels[i]) {
 			this.memoryLabels[i] = freeSpaceLabel;
 			this.memoryColors[i] = freeMemoryColor;
 			this.itemsInMemory--;
 			this.mergeFreeSpaces();
+
+			if (addFromWaitingQueue) {
+				while (this.waitingQueue.length) {
+					var process = this.waitingQueue.shift();
+					if (!this.addProcess(process[0], process[1], process[2], true)) {
+						this.waitingQueue.unshift(process);
+						break;
+					}
+				}
+			}
+
 			memoryChart.update();
 			return true;
 		}
@@ -481,12 +499,25 @@ $(function () {
 
 		for (var i = GUI.memoryLabels.length - 1; i > 0; i--) {
 			if (GUI.memoryLabels[i] !== freeSpaceLabel) {
-				GUI.removeProcess(GUI.memoryLabels[i]);
+				GUI.removeProcess(GUI.memoryLabels[i], false);
 			}
 		}
 		GUI.numberOfProcessesCreated = 0;
 		GUI.itemsInMemory = 0;
 		GUI.randomProcessCounter = 0;
+
+		// Add processes from the waiting queue
+		if (GUI.waitingQueue.length) {
+			while (GUI.waitingQueue.length) {
+				var process = GUI.waitingQueue.shift();
+				if (!GUI.addProcess(process[0], process[1], process[2], true)) {
+					GUI.waitingQueue.unshift(process);
+					break;
+				}
+			}
+			memoryChart.update();
+		}
+
 	});
 
 	compactButton.click(function (event) {
@@ -517,13 +548,15 @@ $(function () {
 				GUI.waitingQueue[i][0] + ' : ' + GUI.waitingQueue[i][1] + 'kb' +
 				'</li>';
 		}
-		createHTMLDialog('Waiting Queue', html + '</ul>', function () {
-			var newWaitlist = $('#waitlist').sortable('toArray', {attribute : 'value'});
-			GUI.waitingQueue = [];
-			for (var item in newWaitlist) {
-				GUI.waitingQueue.push(JSON.parse(newWaitlist[item]));
-			}
-		});
+		createHTMLDialog('Waiting Queue', GUI.waitingQueue.length ? html + '</ul>' :
+			'There is currently no processes on the waiting queue.', GUI.waitingQueue.length ?
+			function () {
+				var newWaitlist = $('#waitlist').sortable('toArray', {attribute : 'value'});
+				GUI.waitingQueue = [];
+				for (var item in newWaitlist) {
+					GUI.waitingQueue.push(JSON.parse(newWaitlist[item]));
+				}
+			} : undefined);
 		$('#waitlist').sortable();
 		$('.waitclosebutton').click(function (event) {
 			$(this).parent().remove();
