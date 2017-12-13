@@ -21,14 +21,69 @@ arrayRemove = function (array, position) {
 // This function creates a jQueryUI Dialog
 createHTMLDialog = function (title, html) {
 	$('#dialog').remove(); // Remove old dialog if exists
-	$(document.body).append('<div id="dialog" title="' +
-		title + '">' + html + '</div>'); // Append new dialog code
+
+	// Append new dialog code
+	$(document.body).append('<div id="dialog">' + html + '</div>');
 
 	// Settings for the dialog
 	var defaultDialog = $('#dialog').dialog({
 		modal: true,
+		title: title,
 		buttons: {
 			'Ok': function() {
+				$(this).dialog('close');
+			}
+		}
+	});
+
+	// When the background is clicked, the dialog is closed
+	$('body > div.ui-widget-overlay.ui-front').click(function (event) {
+		defaultDialog.dialog('close');
+	});
+};
+
+createHTMLErrorDialog = function (html) {
+	$('#dialog').remove(); // Remove old dialog if exists
+
+	// Append new dialog code
+	$(document.body).append('<div id="dialog">' + html + '</div>');
+
+	// Settings for the dialog
+	var defaultDialog = $('#dialog').dialog({
+		modal: true,
+		title: 'Error',
+		resizeable: false,
+		buttons: {
+			'Ok': function() {
+				$(this).dialog('close');
+			}
+		}
+	});
+
+	// When the background is clicked, the dialog is closed
+	$('body > div.ui-widget-overlay.ui-front').click(function (event) {
+		defaultDialog.dialog('close');
+	});
+};
+
+createHTMLConfirmDialog = function(title, html, yesFunc, noFunc) {
+	$('#dialog').remove(); // Remove old dialog if exists
+
+	// Append new dialog code
+	$(document.body).append('<div id="dialog">' + html + '</div>');
+
+	// Settings for the dialog
+	var defaultDialog = $('#dialog').dialog({
+		modal: true,
+		title: title,
+		resizeable: false,
+		buttons: {
+			'Yes': function () {
+				if (yesFunc) yesFunc();
+				$(this).dialog('close');
+			},
+			'No': function () {
+				if (noFunc) noFunc();
 				$(this).dialog('close');
 			}
 		}
