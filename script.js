@@ -19,7 +19,7 @@ arrayRemove = function (array, position) {
 };
 
 // This function creates a jQueryUI Dialog
-createHTMLDialog = function (title, html) {
+createHTMLDialog = function (title, html, okFunc) {
 	$('#dialog').remove(); // Remove old dialog if exists
 
 	// Append new dialog code
@@ -31,6 +31,7 @@ createHTMLDialog = function (title, html) {
 		title: title,
 		buttons: {
 			'Ok': function() {
+				if (okFunc) okFunc();
 				$(this).dialog('close');
 			}
 		}
@@ -38,6 +39,7 @@ createHTMLDialog = function (title, html) {
 
 	// When the background is clicked, the dialog is closed
 	$('body > div.ui-widget-overlay.ui-front').click(function (event) {
+		if (okFunc) okFunc();
 		defaultDialog.dialog('close');
 	});
 };
@@ -91,6 +93,7 @@ createHTMLConfirmDialog = function(title, html, yesFunc, noFunc) {
 
 	// When the background is clicked, the dialog is closed
 	$('body > div.ui-widget-overlay.ui-front').click(function (event) {
+		if (noFunc) noFunc();
 		defaultDialog.dialog('close');
 	});
 };
@@ -116,7 +119,8 @@ var GUI = {
 	numberOfProcessesCreated: 0,
 	memoryValues: [400, 4000 - 400],
 	memoryLabels: ['OS', freeSpaceLabel],
-	memoryColors: [chartColors[4], freeMemoryColor]
+	memoryColors: [chartColors[4], freeMemoryColor],
+	waitingQueue: []
 };
 
 // Uses a basic algorithm to determine which color to use
@@ -125,47 +129,32 @@ GUI.determineColor = function () {
 };
 
 GUI.addProcess = function (pid, processSize, burstTime) {
-	if (this.countHoles() === 0) { // Add process to the end if no holes
-		var oldFreeSpace = this.memoryValues.pop();
-		this.memoryLabels.pop();
-		this.memoryColors.pop();
-
-		this.memoryValues.push(processSize);
-		this.memoryLabels.push(pid);
-		this.memoryColors.push(this.determineColor());
-
-		this.usedMemory += processSize;
-		this.memoryValues.push(oldFreeSpace - processSize);
-		this.memoryLabels.push(freeSpaceLabel);
-		this.memoryColors.push(freeMemoryColor);
-
-		memoryChart.update();
-		this.itemsInMemory++;
-	} else { // Use memory algorithm to add process to memory
-		var index;
-		switch (this.selectedAlgorithm) {
-			case 0: // First Fit
-				index = this.findFirstFit(processSize);
-				if (index) {
-					this.insertProcess(index, pid, processSize);
-				}
-				break;
-			case 1: // Best Fit
-				index = this.findBestFit(processSize);
-				if (index) {
-					this.insertProcess(index, pid, processSize);
-				}
-				break;
-			case 2: // Worst Fit
-				index = this.findWorstFit(processSize);
-				if (index) {
-					this.insertProcess(index, pid, processSize);
-				}
-				break;
-		}
-		this.itemsInMemory++;
-		memoryChart.update();
+	var index;
+	switch (this.selectedAlgorithm) {
+		case 0: // First Fit
+			index = this.findFirstFit(processSize);
+			break;
+		case 1: // Best Fit
+			index = this.findBestFit(processSize);
+			break;
+		case 2: // Worst Fit
+			index = this.findWorstFit(processSize);
+			break;
 	}
+
+	if (index) {
+		this.insertProcess(index, pid, processSize);
+	} else {
+		createHTMLConfirmDialog('Error: No room left in memory',
+			'Would you like to add the process to the waiting queue?',
+			function () {
+				GUI.waitingQueue.push([pid, processSize, burstTime]);
+			});
+		return;
+	}
+
+	this.itemsInMemory++;
+	memoryChart.update();
 
 	// Automatically remove the process after a certain number of milliseconds
 	if (burstTime) {
@@ -507,21 +496,38 @@ $(function () {
 
 	processListButton.click(function (event) {
 		event.preventDefault();
-
 		var i, len = GUI.memoryLabels.length,
 			html = '<ul style="list-style-type: none;">';
 		for (i = 0; i < len; i++) {
-			html += '<li class="ui-state-default" style="padding: 0.4em; padding-left: 1.5em;background: ' +
+			html += '<li class="ui-state-default" style="padding: 0.4em; padding-left: 1.5em; background: ' +
 				GUI.memoryColors[i] + '">' + GUI.memoryLabels[i] +
 				': ' + GUI.memoryValues[i] + '</li>';
 		}
-		html += '</ul>';
-
-		createHTMLDialog('Process List', html);
+		createHTMLDialog('Process List', html + '</ul>');
 	});
 
 	waitingButton.click(function (event) {
 		event.preventDefault();
+		var i, html = '<ul id="waitlist" style="list-style-type: none;">';
+		for (i = 0; i < GUI.waitingQueue.length; i++) {
+			html += '<li class="ui-state-default" style="padding: 0.4em; padding-left: 1.5em;" value=\'' +
+				JSON.stringify(GUI.waitingQueue[i]) + '\'>' +
+				'<span class="ui-icon ui-icon-circle-close waitclosebutton" style="margin-right: 5px"></span>' +
+				'<span class="ui-icon ui-icon-arrowthick-2-n-s"></span>' +
+				GUI.waitingQueue[i][0] + ' : ' + GUI.waitingQueue[i][1] + 'kb' +
+				'</li>';
+		}
+		createHTMLDialog('Waiting Queue', html + '</ul>', function () {
+			var newWaitlist = $('#waitlist').sortable('toArray', {attribute : 'value'});
+			GUI.waitingQueue = [];
+			for (var item in newWaitlist) {
+				GUI.waitingQueue.push(JSON.parse(newWaitlist[item]));
+			}
+		});
+		$('#waitlist').sortable();
+		$('.waitclosebutton').click(function (event) {
+			$(this).parent().remove();
+		});
 	});
 
 	recolorButton.click(function (event) {
