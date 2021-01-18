@@ -116,7 +116,6 @@ var GUI = {
 	randomProcessCounter: 0,
 	selectedAlgorithm: 0, // 0 = First Fit, 1 = Best Fit, 2 = Worst Fit
 	totalMemory: 4096,
-	osMemory: 400,
 	numberOfProcessesCreated: 0,
 	memoryValues: [400, 4096 - 400],
 	memoryLabels: ['OS', freeSpaceLabel],
@@ -404,7 +403,7 @@ $(function () {
 		var newTotalMem = Number($('#totalMem').val());
 		var usedMemory = GUI.calulateUsedMemory();
 		if (newTotalMem < usedMemory) {
-			createHTMLDialog('Error', 'Total memory cannot be less than used memory.');
+			createHTMLErrorDialog('Total memory cannot be less than used memory.');
 			$('#totalMem').val(GUI.totalMemory);
 		} else if (newTotalMem === GUI.totalMemory) { // Check if the value changed
 			return;
@@ -420,13 +419,13 @@ $(function () {
 		event.preventDefault();
 		var newOSMem = Number($('#osMem').val());
 		if (newOSMem > GUI.totalMemory) {
-			createHTMLDialog('Error', 'OS memory cannot be greater than total memory.');
+			createHTMLErrorDialog('OS memory cannot be greater than total memory.');
 			$('#osMem').val(GUI.memoryValues[0]); // Restore initial value
 			return;
 		} else if (newOSMem === GUI.memoryValues[0]) { // Check if the value changed
 			return;
 		} else if (GUI.memoryLabels.length !== 2) {
-			createHTMLDialog('Error', 'OS size cannot be changed while there are processes in memory.');
+			createHTMLErrorDialog('OS size cannot be changed while there are processes in memory.');
 			return;
 		}
 
@@ -442,16 +441,15 @@ $(function () {
 		var burstTime = Number($('#burstTime').val());
 
 		// Error Checking
-		if (isNaN(processSize)) {
-			createHTMLDialog('Error', 'Process is not a number.');
-		} else if (processSize > this.totalMemory) {
-			createHTMLDialog('Error', 'Process cannot be bigger than the total memory.');
-		} else if (pid === '') {
-			createHTMLDialog('Error', 'Process ID cannot be left blank.');
+		if (pid === '') {
+			createHTMLErrorDialog('Process ID cannot be left blank.');
 		} else if (pid === 'OS' || pid === freeSpaceLabel) {
-			createHTMLDialog('Error', 'Invalid Process ID.');
-		} else if (processSize <= 0) {
-			createHTMLDialog('Error', 'Invalid Process Size.');
+			createHTMLErrorDialog('Invalid Process ID.');
+		} else if (processSize > GUI.totalMemory - GUI.memoryValues[0]) {
+			createHTMLErrorDialog('Process cannot be bigger than ' +
+				(GUI.totalMemory - GUI.memoryValues[0]) + 'kb.');
+		} else if (processSize <= 0 || isNaN(processSize)) {
+			createHTMLErrorDialog('Invalid Process Size.');
 		} else {
 			GUI.addProcess(pid, processSize, burstTime);
 		}
@@ -467,20 +465,20 @@ $(function () {
 		event.preventDefault();
 		var killID = $('#killID').val();
 		if (killID === 'OS') {
-			createHTMLDialog('Error', 'OS cannot be killed.');
+			createHTMLErrorDialog('OS cannot be killed.');
 		} else if (killID === freeSpaceLabel) {
-			createHTMLDialog('Error', 'This is not a process.');
+			createHTMLErrorDialog('This is not a process.');
 		} else if (killID === '') {
-			createHTMLDialog('Error', 'No Process ID specified.');
+			createHTMLErrorDialog('No Process ID specified.');
 		} else if (!GUI.removeProcess(killID)) {
-			createHTMLDialog('Error', 'Process ID does not exist.');
+			createHTMLErrorDialog('Process ID does not exist.');
 		}
 	});
 
 	killRandomButton.click(function (event) {
 		event.preventDefault();
 		if (GUI.memoryLabels.length == 2) {
-			createHTMLDialog('Error', 'There are no processes that can be killed.');
+			createHTMLErrorDialog('There are no processes that can be killed.');
 			return;
 		}
 
@@ -493,7 +491,7 @@ $(function () {
 	killAllButton.click(function (event) {
 		event.preventDefault();
 		if (GUI.memoryLabels.length == 2) {
-			createHTMLDialog('Error', 'There are no processes that can be killed.');
+			createHTMLErrorDialog('There are no processes that can be killed.');
 			return;
 		}
 
@@ -549,7 +547,7 @@ $(function () {
 				'</li>';
 		}
 		createHTMLDialog('Waiting Queue', GUI.waitingQueue.length ? html + '</ul>' :
-			'There is currently no processes on the waiting queue.', GUI.waitingQueue.length ?
+			'There are currently no processes on the waiting queue.', GUI.waitingQueue.length ?
 			function () {
 				var newWaitlist = $('#waitlist').sortable('toArray', {attribute : 'value'});
 				GUI.waitingQueue = [];
