@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+
+<!--
+Memory Manager Simulator
+Name: David Pirraglia
+Professor: Sister Jane Fritz
+Class: COM 310
+-->
+
+<html>
+	<head>
+		<title>Memory Manager Simulator</title>
+
+		<meta charset="utf-8">
+
+		<!--Include Favicon-->
+		<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAA8klEQVQ4y+3TPUoDYRSF4eeb/ExCBGFCRFEyRcoUCjKVsdBSUqaysLDWdbgNWxG002DhEiRrEJJGECRKECVjkXEBauvtz3vOvYfL/wTjSg1Lv9S/loX5IfYx/qF4HfdREWSYltJ+VbWBT3TlLppRs9eMmj3coYunWNxIS2kfQygAqoN40EmipIVVXAnqWTlLs3LWLla8RiuJkpVBPOigurjBpHRMeCE/wEhuKtiVOxOcFgbnOMEt1rCFGyx/A2bkEdp4wwg1bIPcg2CGzSLNI+aolxcG+RHqSPCOPVQKIMEOPrCBGM+Y4TKYlP5S4/T/E/gChDMwo1aY4IsAAAAASUVORK5CYII="/>
+
+		<!--Include jQuery library-->
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+
+		<!--Include jQuery UI library and style sheet theme-->
+		<link rel="stylesheet" href="http://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+		<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+
+		<!--Include mousewheel functions for jQuery-->
+		<script src="https://jqueryui.com/resources/demos/external/jquery-mousewheel/jquery.mousewheel.js"></script>
+
+		<!--Include Chart.js library-->
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.min.js"></script>
+
+		<!--Include Project CSS and JS file-->
+		<link rel="stylesheet" href="style.css">
+		<script src="script.js"></script>
+	</head>
+	<body>
+		<h2 id="title">Memory Manager Simulator</h2>
+		<div id="container">
+			<canvas id="memoryChart"></canvas>
+		</div>
+		<div id="tabs">
+			<ul>
+				<li><a href="#tabs-1">Settings</a></li>
+				<li><a href="#tabs-2">Create Process</a></li>
+				<li><a href="#tabs-3">Kill Process</a></li>
+				<li><a href="#tabs-4">Tools</a></li>
+			</ul>
+			<div id="tabs-1">
+				<div>
+					<div>
+						<label for="algorithm">Selected Memory Algorithm:</label>
+						<select id="algorithm">
+							<option value="1" selected>First Fit</option>
+							<option value="2">Best Fit</option>
+							<option value="3">Worst Fit</option>
+						</select>
+					</div>
+					<p></p>
+					<div>
+						<label for="totalMem">Total Memory (kb):</label>
+						<input id="totalMem" value="4096">
+						<button id="updateTotalMem">Update Total Memory</button>
+					</div>
+					<p></p>
+					<div>
+						<label for="osMem">OS Memory (kb):</label>
+						<input id="osMem" value="400">
+						<button id="updateOSMem">Update OS Memory</button>
+					</div>
+				</div>
+			</div>
+			<div id="tabs-2">
+				<div>
+					<div>
+						<label for="processID">Process ID:</label>
+						<input id="processID">
+					</div>
+					<p></p>
+					<div>
+						<label for="processSize">Process Size (kb):</label>
+						<input id="processSize">
+					</div>
+					<p></p>
+					<div>
+						<label for="burstTime">Burst Time (ms):</label>
+						<input id="burstTime" title="Optional. Leave blank for process to last indefinetly.">
+					</div>
+					<p></p>
+					<button id="createProcessButton" title="Creates a process from the fields above.">Create Process</button>
+					<button id="randomButton" title="Creates a process with a minimum size of 5% and a maximum size of 20% of the total memory.">Create Random Process</button>
+				</div>
+			</div>
+			<div id="tabs-3">
+				<div>
+					<label for="killID">Process ID:</label>
+					<input id="killID">
+				</div>
+				<p></p>
+				<button id="killProcessButton" title="Kills a process matching the ID specified above.">Kill Process</button>
+				<button id="killRandomButton">Kill Random Process</button>
+				<button id="killAllButton">Kill all Processes</button>
+			</div>
+			<div id="tabs-4">
+				<div>
+					<button id="compactButton">Compact Memory</button>
+					<button id="recolorButton" title="Uses a rainbow like pattern when recoloring.">Recolor all Processes</button>
+					<p></p>
+					<button id="processListButton">View Process List</button>
+					<button id="waitingButton">View Waiting Queue</button>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
